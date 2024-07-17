@@ -9,3 +9,136 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id String @id
+
+  name       String
+  email      String    @unique
+  password   String
+  created_at DateTime
+  updated_at DateTime?
+
+  items          Item[]
+  stock          Stock?
+  shopping_lists ShoppingList[]
+
+  @@map("users")
+}
+
+model Category {
+  id String @id
+
+  name String
+  slug String @unique
+
+  items Item[]
+
+  @@map("categories")
+}
+
+model UnitType {
+  id String @id
+
+  name String
+
+  items Item[]
+
+  @@map("unit_types")
+}
+
+model Stock {
+  id      String @id
+  user_id String @unique
+
+  created_at DateTime
+  updated_at DateTime?
+
+  user  User        @relation(fields: [user_id], references: [id])
+  items StockItem[]
+
+  @@map("stocks")
+}
+
+model ShoppingList {
+  id      String @id
+  user_id String
+
+  semi_automatic Boolean
+  created_at     DateTime
+  updated_at     DateTime?
+  completed_at   DateTime?
+
+  user  User               @relation(fields: [user_id], references: [id])
+  items ShoppingListItem[]
+
+  @@map("shopping_lists")
+}
+
+model Item {
+  id           String @id
+  user_id      String
+  category_id  String
+  unit_type_id String
+
+  name         String
+  description  String?
+  min_quantity Int
+  created_at   DateTime
+  updated_at   DateTime?
+
+  user           User               @relation(fields: [user_id], references: [id])
+  category       Category           @relation(fields: [category_id], references: [id])
+  unit_type      UnitType           @relation(fields: [unit_type_id], references: [id])
+  stocks         StockItem[]
+  shopping_lists ShoppingListItem[]
+  price_logs     ItemPriceLog[]
+
+  @@unique([user_id, name])
+  @@map("items")
+}
+
+model StockItem {
+  stock_id String
+  item_id  String
+
+  quantity_in_stock Int
+  disregarded       Boolean
+  status            Int
+  valid_until       DateTime?
+  created_at        DateTime
+  updated_at        DateTime?
+
+  stock Stock @relation(fields: [stock_id], references: [id])
+  item  Item  @relation(fields: [item_id], references: [id])
+
+  @@unique([stock_id, item_id])
+  @@map("stock_items")
+}
+
+model ShoppingListItem {
+  shopping_list_id String
+  item_id          String
+
+  unit_price_paid  Decimal
+  quantity_bought  Float
+  total_price_paid Decimal
+
+  shoppingList ShoppingList @relation(fields: [shopping_list_id], references: [id])
+  item         Item         @relation(fields: [item_id], references: [id])
+
+  @@unique([shopping_list_id, item_id])
+  @@map("shopping_list_items")
+}
+
+model ItemPriceLog {
+  id      Int    @id @default(autoincrement())
+  item_id String
+
+  price      Decimal
+  created_at DateTime
+
+  item Item @relation(fields: [item_id], references: [id])
+
+  @@map("item_price_logs")
+}
