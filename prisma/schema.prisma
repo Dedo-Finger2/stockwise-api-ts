@@ -120,9 +120,9 @@ model ShoppingListItem {
   shopping_list_id String
   item_id          String
 
-  unit_price_paid  Decimal
-  quantity_bought  Float
-  total_price_paid Decimal
+  unit_price_paid  Decimal?
+  quantity_bought  Float?
+  total_price_paid Decimal?
 
   shoppingList ShoppingList @relation(fields: [shopping_list_id], references: [id])
   item         Item         @relation(fields: [item_id], references: [id])
